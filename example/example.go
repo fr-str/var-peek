@@ -2,7 +2,7 @@ package example
 
 import (
 	"fmt"
-	"peak/peak"
+	"peak/pek"
 	"strings"
 	"time"
 )

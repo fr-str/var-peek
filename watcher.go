@@ -49,19 +49,17 @@ var (
 
 func Create(interval time.Duration) *Watcher {
 	os.MkdirAll("/tmp/varWatcher", 0755)
-	return &Watcher{
+	wa := &Watcher{
 		interval:    interval,
 		descColour:  BasicColourGreenBold,
 		valueColour: BasicColourBlueBold,
 		logColour:   BasicColourWhiteBold,
 	}
-
+	go wa.render()
+	return wa
 }
 
-func (wa *Watcher) Run() {
-	go wa.run()
-}
-func (wa *Watcher) run() {
+func (wa *Watcher) render() {
 	var out string
 	var wSize *unix.Winsize
 	var buff string
