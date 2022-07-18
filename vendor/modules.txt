@@ -1,3 +1,30 @@
+# github.com/Main-Kube/util v0.0.0-20220715094234-8824d3b47223
+## explicit; go 1.18
+github.com/Main-Kube/util
+github.com/Main-Kube/util/safe
+github.com/Main-Kube/util/set
+github.com/Main-Kube/util/slice
+# github.com/evanphx/json-patch v0.5.2
+## explicit; go 1.14
+github.com/evanphx/json-patch
+# github.com/google/uuid v1.3.0
+## explicit
+github.com/google/uuid
+# github.com/pkg/errors v0.9.1
+## explicit
+github.com/pkg/errors
+# github.com/tidwall/gjson v1.14.0
+## explicit; go 1.12
+github.com/tidwall/gjson
+# github.com/tidwall/match v1.1.1
+## explicit; go 1.15
+github.com/tidwall/match
+# github.com/tidwall/pretty v1.2.0
+## explicit; go 1.16
+github.com/tidwall/pretty
+# github.com/wI2L/jsondiff v0.2.0
+## explicit; go 1.17
+github.com/wI2L/jsondiff
 # golang.org/x/exp v0.0.0-20220713135740-79cabaa25d75
 ## explicit; go 1.18
 golang.org/x/exp/constraints
@@ -5,3 +32,6 @@ golang.org/x/exp/constraints
 ## explicit; go 1.17
 golang.org/x/sys/internal/unsafeheader
 golang.org/x/sys/unix
+# syslabit.com/git/syslabit/log v0.0.0-20210815142336-c50bef1ee7dd
+## explicit; go 1.15
+syslabit.com/git/syslabit/log

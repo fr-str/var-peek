@@ -2,16 +2,15 @@ package example
 
 import (
 	"fmt"
-	"peak/pek"
 	"strings"
 	"time"
+
+	peak "github.com/fr-str/var-peek"
 )
 
 func main() {
 	idx := 0
-	w := peak.Create(100 * time.Millisecond)
-	w.Run()
-
+	peak.Create(100 * time.Millisecond)
 	peak.Var("idx: ", &idx)
 	peak.Var("xD: ", &idx)
 	peak.Var("dupa: ", &idx)

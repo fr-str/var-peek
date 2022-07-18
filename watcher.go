@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/Main-Kube/util/safe"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/sys/unix"
 )
@@ -37,14 +38,18 @@ type Watcher struct {
 	descColour  string
 	valueColour string
 	logColour   string
+	hight       uint16
+	width       uint16
+
+	whHardSet bool
 }
 type cos interface {
 	constraints.Ordered
 }
 
 var (
-	vars  = SortedMap[string, any]{}
-	funcs = SortedMap[string, func() any]{}
+	vars  = safe.SortedMap[string, any]{}
+	funcs = safe.SortedMap[string, func() any]{}
 )
 
 func Create(interval time.Duration) *Watcher {
@@ -61,17 +66,26 @@ func Create(interval time.Duration) *Watcher {
 
 func (wa *Watcher) render() {
 	var out string
-	var wSize *unix.Winsize
+	var wSize *unix.Winsize = &unix.Winsize{
+		Row: wa.hight,
+		Col: wa.width,
+	}
 	var buff string
 	var sl []string
 	var combinedLen int
+	var err error
 	oldStdout := os.Stdout
 	r, w, _ := os.Pipe()
 	go read(r, &buff)
 
 	os.Stdout = w
 	for {
-		wSize, _ = unix.IoctlGetWinsize(int(oldStdout.Fd()), unix.TIOCGWINSZ)
+		if !wa.whHardSet {
+			wSize, err = unix.IoctlGetWinsize(int(oldStdout.Fd()), unix.TIOCGWINSZ)
+			if err != nil {
+				panic(err)
+			}
+		}
 
 		out = ""
 		for v := range vars.Iter() {
@@ -145,4 +159,12 @@ func (wa *Watcher) Set256ColourMode(desc, value, log int) {
 	wa.descColour = fmt.Sprintf("\033[38;5;%dm", desc)
 	wa.valueColour = fmt.Sprintf("\033[38;5;%dm", value)
 	wa.logColour = fmt.Sprintf("\033[38;5;%dm", log)
+}
+
+// If unix.IoctlGetWinsize is giving you trouble, you can use this function to set the width and height of the window.
+// To get the size of the window run 'stty size'
+func (wa *Watcher) SetDimentions(h, w int) {
+	wa.hight = uint16(h)
+	wa.width = uint16(w)
+	wa.whHardSet = true
 }

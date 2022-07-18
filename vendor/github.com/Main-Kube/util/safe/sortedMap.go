@@ -1,25 +1,12 @@
-package peek
+package safe
 
 import (
 	"errors"
 	"sort"
-	"sync"
 
+	"github.com/Main-Kube/util"
 	"golang.org/x/exp/constraints"
 )
-
-type Iterator[K comparable, V any] <-chan Item[K, V]
-
-type Item[K comparable, V any] struct {
-	Key   K
-	Value V
-}
-
-type Map[K comparable, V any] struct {
-	data     map[K]V
-	lock     sync.RWMutex
-	readonly bool
-}
 
 type SortFunction[K constraints.Ordered] func(data []K, i, j int) bool
 
@@ -105,6 +92,32 @@ func (m *SortedMap[K, V]) Set(k K, v V) {
 	m.sorted = false
 }
 
+// Safely delete key from map
+func (m *SortedMap[K, V]) Delete(k K) {
+	if m == nil || m.readonly {
+		return
+	}
+
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	delete(m.data, k)
+	m.sorted = false
+}
+
+// Safely run function with direct access to map
+func (m *SortedMap[K, V]) Commit(fn func(data map[K]V)) {
+	if m.readonly || m.init() != nil {
+		return
+	}
+
+	m.lock.Lock()
+	defer m.lock.Unlock()
+
+	fn(m.data)
+	m.sorted = false
+}
+
 // Return iterator for safe iterating over map
 func (m *SortedMap[K, V]) Iter() Iterator[K, V] {
 	if m == nil {
@@ -129,6 +142,61 @@ func (m *SortedMap[K, V]) Iter() Iterator[K, V] {
 	return iter
 }
 
+// Safely range over map
+func (m *SortedMap[K, V]) ForEach(fn func(k K, v V)) {
+	if m == nil {
+		return
+	}
+
+	// sort before returning
+	m.sort()
+
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	for _, k := range m.sortedKeys {
+		fn(k, m.data[k])
+	}
+}
+
+// Safely return all map keys
+func (m *SortedMap[K, V]) Keys() (keys []K) {
+	if m == nil {
+		return
+	}
+
+	// sort before returning
+	m.sort()
+
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	return m.sortedKeys
+}
+
+// Safely return all map values
+func (m *SortedMap[K, V]) Values() (values []V) {
+	if m == nil {
+		return
+	}
+
+	// sort before returning
+	m.sort()
+
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	i := 0
+	values = make([]V, len(m.sortedKeys))
+
+	for _, k := range m.sortedKeys {
+		values[i] = m.data[k]
+		i++
+	}
+
+	return
+}
+
 // Safely return map length
 func (m *SortedMap[K, V]) Len() int {
 	if m == nil {
@@ -139,4 +207,19 @@ func (m *SortedMap[K, V]) Len() int {
 	defer m.lock.RUnlock()
 
 	return len(m.data)
+}
+
+func (m *SortedMap[K, V]) Copy() *SortedMap[K, V] {
+	if m == nil {
+		return nil
+	}
+
+	m.lock.RLock()
+	defer m.lock.RUnlock()
+
+	copy := util.DeepCopy(m.data)
+	if copy == nil {
+		return nil
+	}
+	return NewSortedMap(*copy, nil)
 }
