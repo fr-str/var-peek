@@ -48,7 +48,7 @@ var (
 )
 
 func Create(interval time.Duration) *Watcher {
-	os.MkdirAll("/tmp/varWatcher", 0755)
+	os.MkdirAll("/tmp/peek-var", 0755)
 	wa := &Watcher{
 		interval:    interval,
 		descColour:  BasicColourGreenBold,
@@ -95,7 +95,7 @@ func (wa *Watcher) render() {
 }
 
 func read(r *os.File, buff *string) {
-	logFile, _ := os.Create("/tmp/varWatcher/log.txt")
+	logFile, _ := os.Create("/tmp/peek-var/log.txt")
 	for {
 		b := make([]byte, 1024)
 		r.Read(b)
