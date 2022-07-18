@@ -1,4 +1,4 @@
-module peak
+module github.com/fr-str/var-peek
 
 go 1.18
 

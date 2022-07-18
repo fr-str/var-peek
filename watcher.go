@@ -1,4 +1,4 @@
-package peak
+package peek
 
 import (
 	"fmt"
