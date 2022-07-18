@@ -75,18 +75,18 @@ func (wa *Watcher) render() {
 
 		out = ""
 		for v := range vars.Iter() {
-			out += fmt.Sprintf("%[3]s%[1]s%[4]s%[2]v", v.Key, reflect.Indirect(reflect.ValueOf(v.Value)), wa.descColour, wa.valueColour) + "\n"
+			out += fmt.Sprintf("%s%s%s%v\n", wa.descColour, v.Key, wa.valueColour, reflect.Indirect(reflect.ValueOf(v.Value)))
 		}
 		for v := range funcs.Iter() {
-			out += fmt.Sprintf("%[3]s%[1]s%[4]s%[2]v", v.Key, v.Value(), wa.descColour, wa.valueColour) + "\n"
+			out += fmt.Sprintf("%s%s%s%v\n", wa.descColour, v.Key, wa.valueColour, v.Value())
 		}
 		sl = strings.Split(buff, "\n")
 		combinedLen = vars.Len() + funcs.Len()
 		if len(sl)+combinedLen > int(wSize.Row) {
 			buff = strings.Join(sl[len(sl)-int(wSize.Row)+combinedLen:], "\n")
-			out += "\033[1;37m" + buff
+			out += fmt.Sprintf("\033[1;37m%s", buff)
 		} else {
-			out += "\033[1;37m" + buff
+			out += fmt.Sprintf("\033[1;37m%s", buff)
 		}
 		oldStdout.Write([]byte("\033[H\033[2J"))
 		oldStdout.Write([]byte(out))
