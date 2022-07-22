@@ -2,7 +2,6 @@ package example
 
 import (
 	"fmt"
-	"strings"
 	"time"
 
 	peak "github.com/fr-str/var-peek"
@@ -10,13 +9,14 @@ import (
 
 func main() {
 	idx := 0
+	timeStart := time.Now()
 	peak.Create(100 * time.Millisecond)
 	peak.Var("idx: ", &idx)
 	peak.Var("xD: ", &idx)
 	peak.Var("dupa: ", &idx)
 	peak.Var("hehe he: ", &idx)
 	peak.Func("time: ", func() any {
-		return strings.Split(time.Now().String(), "+")[2]
+		return time.Since(timeStart)
 	})
 	for {
 		idx++
