@@ -15,22 +15,22 @@ import (
 const (
 	// Font
 
-	// Basic Colour Constants
-	BasicColourRed         = "\033[00;31m"
-	BasicColourRedBold     = "\033[01;31m"
-	BasicColourGreen       = "\033[00;32m"
-	BasicColourGreenBold   = "\033[01;32m"
-	BasicColourYellow      = "\033[00;33m"
-	BasicColourYellowBold  = "\033[01;33m"
-	BasicColourBlue        = "\033[00;34m"
-	BasicColourBlueBold    = "\033[01;34m"
-	BasicColourMagenta     = "\033[00;35m"
-	BasicColourMagentaBold = "\033[01;35m"
-	BasicColourCyan        = "\033[00;36m"
-	BasicColourCyanBold    = "\033[01;36m"
-	BasicColourWhite       = "\033[00;37m"
-	BasicColourWhiteBold   = "\033[01;37m"
-	ColourReset            = "\033[0m"
+	//  Colour Constants
+	Red         = "\033[00;31m"
+	RedBold     = "\033[01;31m"
+	Green       = "\033[00;32m"
+	GreenBold   = "\033[01;32m"
+	Yellow      = "\033[00;33m"
+	YellowBold  = "\033[01;33m"
+	Blue        = "\033[00;34m"
+	BlueBold    = "\033[01;34m"
+	Magenta     = "\033[00;35m"
+	MagentaBold = "\033[01;35m"
+	Cyan        = "\033[00;36m"
+	CyanBold    = "\033[01;36m"
+	White       = "\033[00;37m"
+	WhiteBold   = "\033[01;37m"
+	Reset       = "\033[0m"
 )
 
 type Watcher struct {
@@ -40,49 +40,54 @@ type Watcher struct {
 	logColour   string
 	hight       uint16
 	width       uint16
+	buff        string
+	b           []byte
+	c           chan struct{}
 
 	whHardSet bool
 }
-type cos interface {
-	constraints.Ordered
-}
 
 var (
-	vars  = safe.SortedMap[string, any]{}
-	funcs = safe.SortedMap[string, func() any]{}
+	vars       = safe.SortedMap[string, any]{}
+	funcs      = safe.SortedMap[string, func() any]{}
+	logFile, _ = os.Create("/tmp/peek-var/log.txt")
 )
 
 func Create(interval time.Duration) *Watcher {
 	os.MkdirAll("/tmp/peek-var", 0755)
 	wa := &Watcher{
 		interval:    interval,
-		descColour:  BasicColourGreenBold,
-		valueColour: BasicColourBlueBold,
-		logColour:   BasicColourWhiteBold,
+		descColour:  GreenBold,
+		valueColour: BlueBold,
+		logColour:   WhiteBold,
+		b:           make([]byte, 1024),
+		c:           make(chan struct{}, 1),
 	}
 	go wa.render()
 	return wa
 }
 
 func (wa *Watcher) render() {
+	defer logFile.Close()
 	var out string
 	var wSize *unix.Winsize = &unix.Winsize{
 		Row: wa.hight,
 		Col: wa.width,
 	}
-	var buff string
 	var sl []string
 	var combinedLen int
 	var err error
 	oldStdout := os.Stdout
 	r, w, _ := os.Pipe()
-	go read(r, &buff)
+	go wa.read(r)
 
 	os.Stdout = w
 	for {
 		if !wa.whHardSet {
 			wSize, err = unix.IoctlGetWinsize(int(oldStdout.Fd()), unix.TIOCGWINSZ)
 			if err != nil {
+				fmt.Println("Error getting window size:", err)
+				fmt.Println("If you are using a non-standard terminal, you can set the window size by running 'wa.SetDimentions(hight, width)'")
 				panic(err)
 			}
 		}
@@ -91,42 +96,43 @@ func (wa *Watcher) render() {
 		for v := range vars.Iter() {
 			out += fmt.Sprintf("%s%s%s%v\n", wa.descColour, v.Key, wa.valueColour, reflect.Indirect(reflect.ValueOf(v.Value)))
 		}
+
 		for v := range funcs.Iter() {
 			out += fmt.Sprintf("%s%s%s%v\n", wa.descColour, v.Key, wa.valueColour, v.Value())
 		}
-		sl = strings.Split(buff, "\n")
+
+		sl = strings.Split(wa.buff, "\n")
 		combinedLen = vars.Len() + funcs.Len()
 		if len(sl)+combinedLen > int(wSize.Row) {
-			buff = strings.Join(sl[len(sl)-int(wSize.Row)+combinedLen:], "\n")
-			out += fmt.Sprintf("\033[1;37m%s", buff)
+			wa.buff = strings.Join(sl[len(sl)-int(wSize.Row)+combinedLen:], "\n")
+			out += fmt.Sprintf("%s%s", wa.logColour, wa.buff)
 		} else {
-			out += fmt.Sprintf("\033[1;37m%s", buff)
+			out += fmt.Sprintf("%s%s", wa.logColour, wa.buff)
 		}
 		oldStdout.Write([]byte("\033[H\033[2J"))
 		oldStdout.Write([]byte(out))
-		time.Sleep(wa.interval)
+		// rerenders the screen after the interval or after new data is received
+		// I don't know if this is the best idea ¯\_(ツ)_/¯
+		select {
+		case <-wa.c:
+		case <-time.After(wa.interval):
+		}
 	}
 }
 
-func read(r *os.File, buff *string) {
-	logFile, _ := os.Create("/tmp/peek-var/log.txt")
+func (wa *Watcher) read(r *os.File) {
 	for {
-		b := make([]byte, 1024)
-		r.Read(b)
-		for i := len(b) - 1; i > 0; i-- {
-			if b[i] == '\n' {
-				*buff += string(b[:i+1])
-				logFile.Write(b[:i+1])
-				break
-			}
-		}
+		i, _ := r.Read(wa.b)
+		wa.buff += string(wa.b[:i])
+		logFile.Write(wa.b[:i])
+		wa.c <- struct{}{}
 	}
 }
 
 // Add adds a variable to the watcher.
 // description is a string that will be printed before the variable.
-// Variable can be any type that implements the 'cos' interface.
-func Var[T cos](desc string, v *T) {
+// Variable can be any type in 'constraints.ordered' interface.
+func Var[T constraints.Ordered](desc string, v *T) {
 	vars.Set(desc, v)
 }
 
@@ -142,13 +148,13 @@ func (wa *Watcher) SetColour(desc, value string, log string) {
 	wa.valueColour = value
 	wa.logColour = log
 	if wa.descColour == "" {
-		wa.descColour = BasicColourGreenBold
+		wa.descColour = GreenBold
 	}
 	if wa.valueColour == "" {
-		wa.valueColour = BasicColourBlueBold
+		wa.valueColour = BlueBold
 	}
 	if wa.logColour == "" {
-		wa.logColour = BasicColourWhiteBold
+		wa.logColour = WhiteBold
 	}
 
 }
