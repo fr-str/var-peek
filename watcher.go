@@ -69,11 +69,11 @@ func Create(interval time.Duration) *Watcher {
 
 func (wa *Watcher) render() {
 	defer logFile.Close()
-	var out string
 	var wSize *unix.Winsize = &unix.Winsize{
 		Row: wa.hight,
 		Col: wa.width,
 	}
+	var out string
 	var sl []string
 	var combinedLen int
 	var err error
@@ -92,6 +92,8 @@ func (wa *Watcher) render() {
 			}
 		}
 
+		// using fmt.Fprintf has worse performance
+		// so we are buffering the output and then writing it to the terminal in one go
 		out = ""
 		for v := range vars.Iter() {
 			out += fmt.Sprintf("%s%s%s%v\n", wa.descColour, v.Key, wa.valueColour, reflect.Indirect(reflect.ValueOf(v.Value)))
