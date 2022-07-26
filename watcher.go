@@ -102,6 +102,9 @@ func (wa *Watcher) render() {
 		for v := range funcs.Iter() {
 			out += fmt.Sprintf("%s%s%s%v\n", wa.descColour, v.Key, wa.valueColour, v.Value())
 		}
+		for i := 0; i < int(wSize.Col); i++ {
+			out += "-"
+		}
 
 		sl = strings.Split(wa.buff, "\n")
 		combinedLen = vars.Len() + funcs.Len()
