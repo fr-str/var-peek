@@ -1,15 +1,15 @@
-# github.com/Main-Kube/util v0.0.0-20220715094234-8824d3b47223
-## explicit; go 1.18
-github.com/Main-Kube/util
-github.com/Main-Kube/util/safe
-github.com/Main-Kube/util/set
-github.com/Main-Kube/util/slice
 # github.com/evanphx/json-patch v0.5.2
 ## explicit; go 1.14
 github.com/evanphx/json-patch
 # github.com/google/uuid v1.3.0
 ## explicit
 github.com/google/uuid
+# github.com/main-kube/util v0.0.0-20220824130840-1ae10d265801
+## explicit; go 1.19
+github.com/main-kube/util
+github.com/main-kube/util/safe
+github.com/main-kube/util/set
+github.com/main-kube/util/slice
 # github.com/pkg/errors v0.9.1
 ## explicit
 github.com/pkg/errors

@@ -5,8 +5,8 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/Main-Kube/util"
-	"github.com/Main-Kube/util/set"
+	"github.com/main-kube/util"
+	"github.com/main-kube/util/set"
 )
 
 type Weighted[V any] struct {

@@ -4,7 +4,8 @@ import (
 	"errors"
 	"sort"
 
-	"github.com/Main-Kube/util"
+	"github.com/main-kube/util"
+
 	"golang.org/x/exp/constraints"
 )
 

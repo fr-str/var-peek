@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/Main-Kube/util/safe"
+	"github.com/main-kube/util/safe"
 	"golang.org/x/exp/constraints"
 	"golang.org/x/sys/unix"
 )

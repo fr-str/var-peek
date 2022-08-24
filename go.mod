@@ -3,7 +3,7 @@ module github.com/fr-str/var-peek
 go 1.18
 
 require (
-	github.com/Main-Kube/util v0.0.0-20220715094234-8824d3b47223
+	github.com/main-kube/util v0.0.0-20220824130840-1ae10d265801
 	golang.org/x/exp v0.0.0-20220713135740-79cabaa25d75
 	golang.org/x/sys v0.0.0-20211019181941-9d821ace8654
 )

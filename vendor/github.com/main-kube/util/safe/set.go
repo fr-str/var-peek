@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"sync"
 
-	"github.com/Main-Kube/util/set"
+	"github.com/main-kube/util/set"
 )
 
 type Set[T comparable] struct {
@@ -38,7 +38,7 @@ func (set *Set[T]) Exist(value T) bool {
 	set.lock.RLock()
 	defer set.lock.RUnlock()
 
-	return set.super.Exist(value)
+	return set.super.Contains(value)
 }
 
 func (set *Set[T]) List() (list []T) {

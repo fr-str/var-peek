@@ -5,7 +5,7 @@ import (
 	"errors"
 	"sync"
 
-	"github.com/Main-Kube/util"
+	"github.com/main-kube/util"
 )
 
 type Iterator[K comparable, V any] <-chan Item[K, V]

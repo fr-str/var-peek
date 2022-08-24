@@ -6,7 +6,6 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
-	"math"
 	"math/rand"
 	"os"
 	"reflect"
@@ -15,7 +14,8 @@ import (
 	"time"
 	"unicode"
 
-	"github.com/Main-Kube/util/slice"
+	"github.com/main-kube/util/slice"
+
 	jsonpatch "github.com/evanphx/json-patch"
 	"github.com/google/uuid"
 	"github.com/wI2L/jsondiff"
@@ -25,33 +25,6 @@ import (
 const chars = "abcdefghijklmnopqrstuvwxyz0123456789"
 
 var mdFive = md5.New()
-
-// IsNumeric quickly checks if string is a number. 12x faster then strconv.ParseFloat(s, 64)
-func IsNumeric(s string) bool {
-	if s == "" {
-		return false
-	}
-
-	dotFound := false
-	for _, v := range s {
-		if v == '.' {
-			if dotFound {
-				return false
-			}
-			dotFound = true
-		} else if v < '0' || v > '9' {
-			return false
-		}
-	}
-	return true
-}
-
-// RoundTo rounds `n` float to `decimals` number after comma
-//   RoundTo(1.123, 1) = 1.1
-//   RoundTo(1.655, 2) = 1.66
-func RoundTo(n float64, decimals uint8) float64 {
-	return math.Round(n*math.Pow(10, float64(decimals))) / math.Pow(10, float64(decimals))
-}
 
 func CleanString(str string) string {
 	return strings.Map(func(r rune) rune {

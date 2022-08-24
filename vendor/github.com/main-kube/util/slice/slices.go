@@ -10,8 +10,6 @@ type numeric interface {
 	constraints.Integer | constraints.Float
 }
 
-//
-
 // Avg returns the average of a slice of numeric values
 func Avg[T numeric](listOfNumbers []T) T {
 	if len(listOfNumbers) == 0 {
@@ -69,7 +67,7 @@ func RemoveIdx[T comparable](s *[]T, i int) {
 	(*s) = (*s)[:len((*s))-1]
 }
 
-// Remove removes first occurrence of elem from slice,
+// Remove removes first occurrence of e from slice,
 // but changes the slice, so use only if order doesn't matter!
 func Remove[T comparable](s *[]T, elem T) {
 	for i, v := range *s {
@@ -97,4 +95,26 @@ func HitLimitRatio[T numeric](numbers []T, limit uint) uint {
 	}
 
 	return uint(math.Ceil(count / float64(len(numbers)) * 100))
+}
+
+func Diff[T comparable](a, b []T) []T {
+	if len(a) > len(b) {
+		a, b = b, a
+	}
+
+	var diff []T
+	var m = make(map[T]struct{}, len(a))
+	for _, v := range a {
+		m[v] = struct{}{}
+	}
+	for _, v := range b {
+		if _, ok := m[v]; !ok {
+			diff = append(diff, v)
+			delete(m, v)
+		}
+	}
+	for k := range m {
+		diff = append(diff, k)
+	}
+	return diff
 }

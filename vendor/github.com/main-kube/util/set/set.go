@@ -40,7 +40,17 @@ func (set *Set[T]) Add(values ...T) {
 	}
 }
 
-func (set *Set[T]) Exist(value T) bool {
+func (set *Set[T]) Remove(values ...T) {
+	if set.init() != nil {
+		return
+	}
+
+	for _, value := range values {
+		delete(set.data, value)
+	}
+}
+
+func (set *Set[T]) Contains(value T) bool {
 	if set == nil {
 		return false
 	}
